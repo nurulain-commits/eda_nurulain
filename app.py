@@ -62,9 +62,10 @@ def load_data(file):
             # Read file content as string
             file_content = file.read().decode('utf-8')
             # Use StringIO to create a file-like object
+            # Use sep='\s+' instead of deprecated delim_whitespace
             df = pd.read_csv(
                 io.StringIO(file_content), 
-                delim_whitespace=True, 
+                sep='\s+',
                 comment='%', 
                 names=['X', 'Y', 'Z']
             )
