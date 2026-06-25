@@ -48,9 +48,10 @@ st.caption("Upload text, CSV, or Excel data to explore signals, find local maxim
 # File Upload
 # =========================
 st.sidebar.header("Upload Dataset")
-uploaded_file = st.sidebar.file_uploader(
-    "Upload TXT, CSV, or Excel file",
-    type=["txt", "csv", "xlsx", "xls"]
+uploaded_files = st.sidebar.file_uploader(
+    "Upload TXT, CSV, or Excel files (multiple allowed)",
+    type=["txt", "csv", "xlsx", "xls"],
+    accept_multiple_files=True
 )
 
 @st.cache_data
@@ -69,9 +70,19 @@ def load_data(file):
 # =========================
 # Main App Body
 # =========================
-if uploaded_file is not None:
-    df = load_data(uploaded_file)
-    st.success("Dataset uploaded successfully.")
+if uploaded_files:
+    # Create file selection
+    file_names = [f.name for f in uploaded_files]
+    selected_file_idx = st.sidebar.selectbox(
+        "Select file to analyze:",
+        range(len(uploaded_files)),
+        format_func=lambda x: file_names[x]
+    )
+    
+    # Load selected file
+    selected_file = uploaded_files[selected_file_idx]
+    df = load_data(selected_file)
+    st.success(f"✅ Dataset loaded: **{selected_file.name}** ({df.shape[0]} rows, {df.shape[1]} columns)")
 
     # Create tabs to separate standard EDA from the specific Peak processing
     tab1, tab2 = st.tabs(["📊 Exploratory Data Analysis", "⛰️ Peak Detection & Clustering"])
@@ -102,6 +113,8 @@ if uploaded_file is not None:
 
     with tab2:
         st.subheader("Peak Detection & Clustering")
+        
+        numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
         
         if len(numeric_cols) >= 2:
             row1_col1, row1_col2 = st.columns(2)
@@ -195,8 +208,10 @@ if uploaded_file is not None:
                 st.download_button(
                     label="Download Peak Data as CSV",
                     data=csv,
-                    file_name="clustered_peaks.csv",
+                    file_name=f"clustered_peaks_{selected_file.name.split('.')[0]}.csv",
                     mime="text/csv",
                 )
+        else:
+            st.warning("Need at least two numeric columns to perform peak detection and clustering.")
 else:
-    st.info("👈 Please upload a TXT, CSV, or Excel dataset from the sidebar to begin.")
+    st.info("👈 Please upload one or more TXT, CSV, or Excel datasets from the sidebar to begin.")
