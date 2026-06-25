@@ -59,7 +59,7 @@ uploaded_files = st.sidebar.file_uploader(
 def load_data(file):
     # Handle the specific .txt format provided in the examples (space delimited, % commented header)
     if file.name.endswith(".txt"):
-        df = pd.read_csv(file, delim_whitespace=True, comment='%', names=['X', 'Y', 'Z'])
+        df = pd.read_csv(file, sep='\s+', comment='%', names=['X', 'Y', 'Z'])
         # Drop columns that might be completely empty
         df = df.dropna(axis=1, how='all')
         return df
